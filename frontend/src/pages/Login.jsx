@@ -17,12 +17,9 @@ export default function Login() {
       const res = await fetch('/api/auth/login.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email_or_username: email, password })        
+        body: JSON.stringify({ email_or_username: email, password })
       });
-
-
       const data = await res.json();
-      
       
       if (data.status === 'success') {
         loginUser(data.data);
