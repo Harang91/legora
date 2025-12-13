@@ -1,0 +1,2 @@
+# legora
+Vizsga remek munkavégzéshez 
