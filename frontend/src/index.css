@@ -1,0 +1,92 @@
+/* Háttér és alapbeállítások */
+body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    /* Fontos: a perjel (/) a public mappára mutat */
+    background-image: url('/hatter1.jpg'); 
+    background-size: 150px; /* Kicsit kisebb minta, mint az eredetiben, szebb */
+    background-repeat: repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+main {
+    flex-grow: 1;
+}
+
+/* Navbar stílus - hatter2.jpg a public mappából */
+.custom-navbar {
+    background-image: url('/hatter2.jpg');
+    background-size: cover;
+    background-position: center;
+    background-color: rgba(255, 255, 255, 0.90); 
+    background-blend-mode: overlay; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    border-bottom: 4px solid #FFD700; /* Sárga LEGO csík */
+}
+
+.custom-navbar .navbar-brand img { 
+    width: 50px; 
+    height: 50px; 
+    transition: transform 0.3s;
+}
+.custom-navbar .navbar-brand:hover img {
+    transform: rotate(15deg); /* Kis animáció hoverre */
+}
+
+/* Főoldal Hero Kártya */
+.custom-hero-card {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FFD700 25%, #4ECDC4 50%, #45B7D1 75%, #A182F5 100%);
+    background-size: 400% 400%;
+    animation: heroGradientShift 15s ease infinite;
+    border: none; 
+    border-radius: 1rem; 
+    padding: 3rem; 
+    color: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+}
+
+@keyframes heroGradientShift { 
+    0%{background-position:0% 50%} 
+    50%{background-position:100% 50%} 
+    100%{background-position:0% 50%} 
+}
+
+.custom-hero-card h2 { 
+    font-size: 3.5rem; 
+    font-weight: bold;
+}
+
+/* Üveghatás (Glassmorphism) a kártyákhoz */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem 0;
+}
+
+.card, .auth-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.logo {
+    width: 80px; 
+    height: 80px; 
+    display: block; 
+    margin: 0 auto 1.5rem auto;
+}
+
+/* Hirdetés kártyák */
+.listing-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+    overflow: hidden;
+}
+.listing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
