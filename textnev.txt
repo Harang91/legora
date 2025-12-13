@@ -1,8 +1,4 @@
-Folder PATH listing
-Volume serial number is FA09-ACC1
-C:.
-|   textnev.txt
-|   
+   
 +---backend
 |   |   index.php
 |   |   sql_fuggvenyek.php
