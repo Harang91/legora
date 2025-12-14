@@ -3,17 +3,26 @@ import { useNavigate } from 'react-router-dom';
 
 export default function AddListing() {
   const navigate = useNavigate();
-  // Állapotok
+  
+  // 1. STATE: Itt adjuk hozzá a 'name' mezőt a kezdőállapothoz
   const [data, setData] = useState({
-    item_type: 'set', item_id: '', price: '', quantity: 1, item_condition: 'new', description: ''
+    name: '',       // <--- EZ KELL A NÉVHEZ
+    item_type: 'set', 
+    item_id: '', 
+    price: '', 
+    quantity: 1, 
+    item_condition: 'new', 
+    description: ''
   });
-  const [file, setFile] = useState(null); // Külön state a fájlnak
+  
+  const [file, setFile] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // FormData készítése (JSON helyett)
     const formData = new FormData();
+    // 2. KÜLDÉS: Itt fűzzük hozzá az űrlap adataihoz
+    formData.append('name', data.name); 
     formData.append('item_type', data.item_type);
     formData.append('item_id', data.item_id);
     formData.append('price', data.price);
@@ -21,7 +30,6 @@ export default function AddListing() {
     formData.append('item_condition', data.item_condition);
     formData.append('description', data.description);
     
-    // Ha van kiválasztva kép, csatoljuk
     if (file) {
         formData.append('image', file);
     }
@@ -29,8 +37,6 @@ export default function AddListing() {
     try {
         const res = await fetch('/api/listings/create_listing.php', {
             method: 'POST',
-            // FIGYELEM: Content-Type fejlécet NE állíts be manuálisan FormData-nál! 
-            // A böngésző automatikusan beállítja a multipart/form-data boundary-t.
             body: formData 
         });
         
@@ -52,21 +58,43 @@ export default function AddListing() {
       <div className="card p-4 auth-card">
         <h3 className="mb-4">Új hirdetés</h3>
         <form onSubmit={handleSubmit}>
-            {/* Típus, ID, Ár, Mennyiség - ezek maradnak ugyanúgy... */}
+            
             <div className="mb-3">
-                <label>Típus</label>
+                <label className="form-label">Típus</label>
                 <select className="form-select" value={data.item_type} onChange={e=>setData({...data, item_type:e.target.value})}>
                     <option value="set">Szett</option>
                     <option value="part">Alkatrész</option>
                     <option value="minifig">Minifigura</option>
                 </select>
             </div>
+
             <div className="mb-3">
-                <label>Azonosító</label>
-                <input type="text" className="form-control" required value={data.item_id} onChange={e=>setData({...data, item_id:e.target.value})} />
+                <label className="form-label">Azonosító (Cikkszám)</label>
+                <input 
+                    type="text" 
+                    className="form-control" 
+                    required 
+                    value={data.item_id} 
+                    onChange={e=>setData({...data, item_id:e.target.value})} 
+                    placeholder="Pl. 75192" 
+                />
             </div>
-            
-            {/* ÚJ RÉSZ: FÁJL FELTÖLTÉS */}
+
+            {/* --- 3. MEGJELENÍTÉS: EZT A RÉSZT KERESD! --- */}
+            <div className="mb-3">
+                <label className="form-label fw-bold">Megnevezés</label>
+                <input 
+                    type="text" 
+                    className="form-control" 
+                    required 
+                    value={data.name} 
+                    onChange={e => setData({...data, name: e.target.value})} 
+                    placeholder="Pl. Millennium Falcon" 
+                />
+                <div className="form-text">Add meg a készlet vagy figura nevét.</div>
+            </div>
+            {/* ------------------------------------------- */}
+
             <div className="mb-3">
                 <label className="form-label">Saját fotó feltöltése (Opcionális)</label>
                 <input 
@@ -75,29 +103,28 @@ export default function AddListing() {
                     accept="image/*"
                     onChange={e => setFile(e.target.files[0])} 
                 />
-                <div className="form-text">Ha nem töltesz fel képet, a hivatalos LEGO katalóguskép jelenik meg.</div>
             </div>
 
             <div className="row">
                 <div className="col-md-6 mb-3">
-                    <label>Ár (Ft)</label>
+                    <label className="form-label">Ár (Ft)</label>
                     <input type="number" className="form-control" required value={data.price} onChange={e=>setData({...data, price:parseInt(e.target.value)})} />
                 </div>
                 <div className="col-md-6 mb-3">
-                    <label>Mennyiség</label>
+                    <label className="form-label">Mennyiség</label>
                     <input type="number" className="form-control" required value={data.quantity} onChange={e=>setData({...data, quantity:parseInt(e.target.value)})} />
                 </div>
             </div>
             
             <div className="mb-3">
-                <label>Állapot</label>
+                <label className="form-label">Állapot</label>
                 <select className="form-select" value={data.item_condition} onChange={e=>setData({...data, item_condition:e.target.value})}>
                     <option value="new">Új</option>
                     <option value="used">Használt</option>
                 </select>
             </div>
             <div className="mb-3">
-                <label>Leírás</label>
+                <label className="form-label">Leírás</label>
                 <textarea className="form-control" rows="3" value={data.description} onChange={e=>setData({...data, description:e.target.value})}></textarea>
             </div>
             <button type="submit" className="btn btn-primary w-100">Hirdetés feladása</button>

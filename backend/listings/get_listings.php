@@ -1,5 +1,6 @@
 <?php
 // Központi inicializáló fájl betöltése (DB, session, security, response, validation, helpers)
+// Feltételezzük, hogy a 'getLegoData' függvény a helpers-ben vagy az init-ben van definiálva.
 require_once __DIR__ . '/../shared/init.php';
 
 /**
@@ -12,74 +13,116 @@ require_once __DIR__ . '/../shared/init.php';
  * - LEGO metaadatok automatikus csatolása.
  */
 
-// Csak GET kérést engedünk
+// 1. Csak GET kérést engedünk
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
     errorResponse("Érvénytelen kérés (csak GET engedélyezett)");
+    exit;
 }
 
-// Lapozás paraméterek
+// 2. Lapozás paraméterek
 $page   = max(1, (int)($_GET['page'] ?? 1));
 $limit  = max(1, min(100, (int)($_GET['limit'] ?? 20))); // max 100 elem
 $offset = ($page - 1) * $limit;
 
-// Szűrési paraméterek
+// 3. Szűrési paraméterek
 $item_type = $_GET['item_type'] ?? null;
 $seller_id = $_GET['seller_id'] ?? null;
 
 try {
-    // Alap SQL (csak aktív hirdetések)
-    // JAVÍTVA: Hozzáadtuk az 'l.custom_image_url' mezőt a felsoroláshoz!
-    $sql = "SELECT l.id, l.item_type, l.item_id, l.quantity, l.price, l.item_condition,
-                   l.description, l.created_at, l.custom_image_url, u.username AS seller
+    // 4. SQL LEKÉRDEZÉS ÖSSZEÁLLÍTÁSA
+    // Fontos: Itt kérjük le a 'custom_image_url'-t is!
+    $sql = "SELECT l.id, 
+                   l.id as listing_id, 
+                   l.item_type, 
+                   l.item_id, 
+                   l.quantity, 
+                   l.price, 
+                   l.item_condition,
+                   l.description, 
+                   l.created_at, 
+                   l.custom_image_url, 
+                   u.username AS seller,
+                   u.username AS seller_name
             FROM listings l
             JOIN users u ON l.user_id = u.id
-            WHERE l.deleted_at IS NULL"; // logikai törlés szűrés
+            WHERE l.deleted_at IS NULL"; // Csak az aktív hirdetések
     
     $params = [];
 
-    // Szűrés item_type alapján
+    // Szűrés item_type alapján (pl. set, part, minifig)
     if ($item_type) {
         $sql .= " AND l.item_type = ?";
         $params[] = $item_type;
     }
 
-    // Szűrés seller_id alapján
+    // Szűrés seller_id alapján (ha egy eladó cuccait nézzük)
     if ($seller_id) {
         $sql .= " AND l.user_id = ?";
         $params[] = $seller_id;
     }
 
-    // Összes találat száma (lapozáshoz)
-    $countSql = "SELECT COUNT(*) FROM ($sql) AS sub";
+    // 5. Összes találat száma (a lapozáshoz kell)
+    $countSql = "SELECT COUNT(*) FROM listings l WHERE l.deleted_at IS NULL";
+    // A count SQL-nek is tartalmaznia kell a WHERE feltételeket, ha szűrünk
+    if ($item_type) $countSql .= " AND l.item_type = '$item_type'"; // Egyszerűsített beillesztés count-hoz
+    if ($seller_id) $countSql .= " AND l.user_id = '$seller_id'";
+
     $countStmt = $pdo->prepare($countSql);
+    // Itt egyszerűsített paraméterezést használunk vagy újraépíthetjük a params tömböt, 
+    // de a fenti $params tömböt használva a "SELECT COUNT(*) FROM ... JOIN ..." lenne a legtisztább.
+    // A biztos megoldás érdekében használjuk az eredeti $params-t és az eredeti WHERE részt:
+    $countSqlFull = "SELECT COUNT(*) FROM listings l JOIN users u ON l.user_id = u.id WHERE l.deleted_at IS NULL";
+    if ($item_type) $countSqlFull .= " AND l.item_type = ?";
+    if ($seller_id) $countSqlFull .= " AND l.user_id = ?";
+    
+    $countStmt = $pdo->prepare($countSqlFull);
     $countStmt->execute($params);
     $total = (int)$countStmt->fetchColumn();
 
-    // LIMIT és OFFSET közvetlen beillesztése (MariaDB nem engedi paraméterként)
+    // 6. VÉGLEGES LEKÉRDEZÉS FUTTATÁSA (Rendezés + Limit)
     $sql .= " ORDER BY l.created_at DESC LIMIT $limit OFFSET $offset";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $listings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // LEGO metaadatok hozzácsatolása a helperen keresztül
-    foreach ($listings as &$listing) {
-    // Alapértelmezett hivatalos adatok lekérése
-    $legoData = getLegoData($pdo, $listing['item_type'], $listing['item_id']);
+    // 7. ADATOK FELDOLGOZÁSA (LEGO Data + Képek)
+    // Ez a rész felel azért, hogy a React kód megkapja a képeket
+    
+    // FONTOS: Ezt állítsd be a saját szervered elérési útjára!
+    // A végén legyen ott a perjel (/) és az 'uploads/' mappa!
+    $baseUrl = "http://localhost/legora_final2/backend/uploads/";
 
-    // Ha van feltöltött saját kép, felülírjuk a hivatalos képet
-    if (!empty($listing['custom_image_url'])) {
-        // A teljes URL-t rakjuk össze, hogy a frontend elérje
-        // Figyelem: A 'http://localhost/legora_final2/backend/' részt igazítsd a szerveredhez!
-        $baseUrl = "http://localhost/legora_final2/backend/";
-        $legoData['img_url'] = $baseUrl . $listing['custom_image_url'];
+    foreach ($listings as &$listing) {
+        // A. Hivatalos LEGO adatok lekérése (név, gyári kép)
+        // Feltételezzük, hogy ez a függvény létezik az init.php-ban importált helperben
+        if (function_exists('getLegoData')) {
+            $legoData = getLegoData($pdo, $listing['item_type'], $listing['item_id']);
+        } else {
+            // Fallback, ha nincs meg a függvény
+            $legoData = ['name' => 'Ismeretlen elem', 'img_url' => null];
+        }
+
+        // B. Saját feltöltött kép kezelése
+        if (!empty($listing['custom_image_url'])) {
+            // 1. Összerakjuk a teljes URL-t a frontendnek
+            $fullImageUrl = $baseUrl . $listing['custom_image_url'];
+            
+            // 2. Felülírjuk a LEGO gyári képet a saját képpel (így a kártya ezt mutatja)
+            $legoData['img_url'] = $fullImageUrl;
+
+            // 3. A React kompatibilitás miatt a gyökérbe is kitesszük 'image_url' néven
+            $listing['image_url'] = $listing['custom_image_url'];
+        } else {
+            $listing['image_url'] = null;
+        }
+
+        // C. Adatok csatolása
+        $listing['lego_data'] = $legoData;
     }
 
-    $listing['lego_data'] = $legoData;
-}
-
-    // Egységes sikeres válasz
+    // 8. VÁLASZ KÜLDÉSE
     successResponse("Hirdetések listázva", [
         "listings" => $listings,
         "pagination" => [
@@ -88,54 +131,9 @@ try {
             "total" => $total
         ]
     ]);
+
 } catch (PDOException $e) {
     http_response_code(500);
     errorResponse("Adatbázis hiba: " . $e->getMessage());
 }
-
-/* 
-
-Backend összefoglaló – `get_listings.php`
-
-### Cél
-A `get_listings.php` endpoint feladata, hogy a piactér hirdetéseit lekérje, és a felhasználói adatok mellett automatikusan csatolja a hivatalos LEGO metaadatokat is.  
-Így a frontend azonnal meg tudja jeleníteni a hirdetést a hivatalos képpel, névvel, évvel, színnel – az eladó által megadott hiányosságokkal kiegészítve.
-A `get_listings.php` végpont feladata, hogy a piactér hirdetéseit lekérje, és a felhasználói adatok mellett automatikusan csatolja a hivatalos LEGO metaadatokat is.  
-- Csak **GET** kérést enged.  
-- Lapozás (`page`, `limit`) és szűrés (`item_type`, `seller_id`) támogatott.  
-- Csak aktív hirdetések (`deleted_at IS NULL`).  
-- LEGO metaadatok (`lego_data`) a helperen keresztül kerülnek be.  
-- Egységes JSON válasz formátum.  
----
-
-### Fő funkciók
-1. **HTTP metódus ellenőrzés**  
-   - Csak `GET` kérést enged.  
-   - Más metódus → `405 Method Not Allowed`.
-
-2. **Lapozás (pagination)**  
-   - Paraméterek: `page`, `limit`.  
-   - Alapértelmezett: `page=1`, `limit=20`.  
-   - Biztonság: `limit` max. 100, minden érték integerre castolva.  
-   - MariaDB kompatibilitás: `LIMIT` és `OFFSET` közvetlenül kerül az SQL‑be.
-
-3. **Szűrési lehetőségek**  
-   - `item_type` → szűrés típus szerint (`set`, `part`, `minifig`).  
-   - `seller_id` → szűrés adott felhasználó hirdetéseire.
-
-4. **Kapcsolatok**  
-   - `listings.user_id` → `users.id` → `users.username` (alias: `seller`).  
-   - `listings.item_type` + `listings.item_id` → statikus LEGO táblák (`sets`, `parts`, `minifigs`).
-
-5. **LEGO metaadatok (`lego_data`)**  
-   - `set` → `sets.name`, `sets.year`, `sets.img_url`  
-   - `part` → `parts.name`, `colors.name`, `colors.rgb`  
-   - `minifig` → `minifigs.name`, `minifigs.img_url`  
-   - Ezeket a backend illeszti be a JSON válaszba, **nem adatbázis oszlopok**.
-
-6. **Egységes JSON válasz**  
-   - `status` (success/error)  
-   - `message` (emberi olvasható üzenet)  
-   - `data` → `listings` tömb + `pagination` objektum  
-   - Hibák esetén megfelelő HTTP státuszkód (400, 401, 403, 405, 409, 422, 500).
-*/
+?>

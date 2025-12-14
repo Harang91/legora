@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 
@@ -6,8 +6,16 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { loginUser } = useAuth();
+  
+  const { loginUser, user } = useAuth(); // user is kell az ellenőrzéshez
   const navigate = useNavigate();
+
+  // Ha már be van lépve (pl. frissítés után betöltött az AuthContext), dobja át
+  useEffect(() => {
+    if (user) {
+      navigate('/'); 
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,12 +30,19 @@ export default function Login() {
       const data = await res.json();
       
       if (data.status === 'success') {
+        // 1. Elmentjük a böngészőbe
+        localStorage.setItem('user', JSON.stringify(data.data));
+        
+        // 2. Beállítjuk a React állapotot
         loginUser(data.data);
+        
+        // 3. Átirányítunk
         navigate('/');
       } else {
         setError(data.message);
       }
     } catch (err) {
+      console.error(err);
       setError('Hálózati hiba');
     }
   };
