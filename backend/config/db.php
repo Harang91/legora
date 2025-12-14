@@ -1,5 +1,5 @@
 <?php
-$dsn = "mysql:host=localhost;dbname=legora;charset=utf8mb4;port=3307";
+$dsn = "mysql:host=localhost;dbname=legora;charset=utf8mb4";
 $user = "root"; // vagy a saját adatbázis felhasználód
 $pass = "";     // ha van jelszó, ide írd be
 
