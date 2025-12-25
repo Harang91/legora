@@ -22,12 +22,26 @@ $mode       = $_GET['mode']       ?? "search";
 
 // 3. SQL összeállítása
 // JAVÍTVA: Hozzáadtuk a 'custom_image_url'-t a lekérdezéshez!
-$sql = "SELECT l.id AS listing_id, l.item_type, l.item_id, l.item_condition, 
-               l.price, l.description, l.created_at, l.custom_image_url, 
-               u.username AS seller_name
+$sql = "SELECT 
+            l.id AS listing_id, 
+            l.item_type, 
+            l.item_id, 
+            l.item_condition, 
+            l.price, 
+            l.description, 
+            l.created_at, 
+            l.custom_image_url, 
+            u.username AS seller_name,
+            s.name AS set_name,
+            m.name AS minifig_name,
+            p.name AS part_name
         FROM listings l
         JOIN users u ON l.user_id = u.id
+        LEFT JOIN sets s ON (l.item_type = 'set' AND s.set_num = l.item_id)
+        LEFT JOIN minifigs m ON (l.item_type = 'minifig' AND m.fig_num = l.item_id)
+        LEFT JOIN parts p ON (l.item_type = 'part' AND p.part_num = l.item_id)
         WHERE l.deleted_at IS NULL";
+
 
 $params = [];
 
@@ -44,10 +58,21 @@ if ($condition) {
 
 // Keresőszó (q)
 if ($q) {
-    $sql .= " AND (l.description LIKE ? OR l.item_id LIKE ?)";
-    $params[] = "%$q%";
-    $params[] = "%$q%";
+    $sql .= " AND (
+        l.description LIKE ?
+        OR l.item_id LIKE ?
+        OR s.name LIKE ?
+        OR m.name LIKE ?
+        OR p.name LIKE ?
+    )";
+
+    $params[] = "%$q%"; // description
+    $params[] = "%$q%"; // item_id
+    $params[] = "%$q%"; // set name
+    $params[] = "%$q%"; // minifig name
+    $params[] = "%$q%"; // part name
 }
+
 
 // 4. Rendezés
 $sql .= " ORDER BY l.created_at DESC";
