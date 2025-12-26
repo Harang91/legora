@@ -112,7 +112,7 @@ export default function AddListing() {
                 </div>
                 <div className="col-md-6 mb-3">
                     <label className="form-label">Mennyiség</label>
-                    <input type="number" className="form-control" required value={data.quantity} onChange={e=>setData({...data, quantity:parseInt(e.target.value)})} />
+                    <input type="number" min="1" className="form-control" required value={data.quantity} onChange={e=>setData({...data, quantity:parseInt(e.target.value)})} />
                 </div>
             </div>
             
