@@ -13,9 +13,7 @@ if (!isset($_SESSION['user_id'])) {
     errorResponse("Bejelentkezés szükséges");
 }
 
-// Adatok fogadása
-// --- 1. MÓDOSÍTÁS: A név (name) átvétele ---
-$name = $_POST['name'] ?? ''; 
+// Adatok fogadása (FormData miatt most $_POST-ban vannak, nem JSON-ben!)
 $item_type = $_POST['item_type'] ?? null;
 $item_id = $_POST['item_id'] ?? null;
 $price = $_POST['price'] ?? null;
@@ -29,7 +27,7 @@ if (!$item_type || !$item_id || !$price) {
     errorResponse("Hiányzó adatok (típus, azonosító, ár kötelező)");
 }
 
-// FÁJL FELTÖLTÉS KEZELÉSE (Ez a rész változatlan)
+// FÁJL FELTÖLTÉS KEZELÉSE
 $custom_image_path = null;
 
 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
@@ -38,21 +36,28 @@ if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
     $fileSize = $_FILES['image']['size'];
     $fileType = $_FILES['image']['type'];
     
+    // Kiterjesztés ellenőrzése
     $fileNameCmps = explode(".", $fileName);
     $fileExtension = strtolower(end($fileNameCmps));
     $allowedfileExtensions = ['jpg', 'gif', 'png', 'jpeg', 'webp'];
 
     if (in_array($fileExtension, $allowedfileExtensions)) {
+        // Új fájlnév generálása (hogy ne írják felül egymást)
         $newFileName = md5(time() . $fileName) . '.' . $fileExtension;
+        
+        // Célmappa: backend/uploads/
         $uploadFileDir = __DIR__ . '/../uploads/';
         
+        // Ha nincs uploads mappa, létrehozzuk
         if (!is_dir($uploadFileDir)) {
             mkdir($uploadFileDir, 0777, true);
         }
 
-        $dest_path = $uploadFileDir . $newFileName;
+        $dest_path = __DIR__ . '/../../frontend/public/uploads/' . $newFileName;
+
 
         if(move_uploaded_file($fileTmpPath, $dest_path)) {
+            // Sikeres feltöltés -> adatbázisba ez az útvonal kerül
             $custom_image_path = 'uploads/' . $newFileName;
         } else {
             errorResponse("Hiba a fájl mozgatásakor. Írási jogok?");
@@ -63,23 +68,19 @@ if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
 }
 
 try {
-    // --- 2. MÓDOSÍTÁS: 'name' hozzáadása az SQL parancshoz ---
-    $sql = "INSERT INTO listings (user_id, name, item_type, item_id, price, quantity, item_condition, description, custom_image_url) 
-            VALUES (:user_id, :name, :item_type, :item_id, :price, :quantity, :item_condition, :description, :custom_image_url)";
+    $sql = "INSERT INTO listings (user_id, item_type, item_id, price, quantity, item_condition, description, custom_image_url) 
+            VALUES (:user_id, :item_type, :item_id, :price, :quantity, :item_condition, :description, :custom_image_url)";
     
     $stmt = $pdo->prepare($sql);
-    
-    // --- 3. MÓDOSÍTÁS: 'name' paraméter átadása ---
     $stmt->execute([
         ':user_id' => $_SESSION['user_id'],
-        ':name' => $name, // <--- Itt adjuk át az új adatot
         ':item_type' => $item_type,
         ':item_id' => $item_id,
         ':price' => $price,
         ':quantity' => $quantity,
         ':item_condition' => $item_condition,
         ':description' => $description,
-        ':custom_image_url' => $custom_image_path
+        ':custom_image_url' => $custom_image_path // Ez NULL lesz, ha nincs kép
     ]);
 
     successResponse("Hirdetés sikeresen létrehozva", ["id" => $pdo->lastInsertId()]);

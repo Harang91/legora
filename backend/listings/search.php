@@ -102,9 +102,10 @@ try {
             // JAVÍTVA: Ha van feltöltött saját kép, azt használjuk
             if (!empty($row['custom_image_url'])) {
                 // A backend URL-t igazítsd a sajátodhoz!
-                $baseUrl = "http://localhost/legora_final2/backend/";
+                $baseUrl = "http://localhost:5173/";
                 $legoData['img_url'] = $baseUrl . $row['custom_image_url'];
-            }
+}
+
             
             $row["lego_meta"] = $legoData;
         } else {
