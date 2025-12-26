@@ -75,7 +75,7 @@ export default function Home() {
           return l.lego_meta.img_url;
       }
       // Végső esetben placeholder
-      return "https://via.placeholder.com/300?text=No+Image";
+      return "/no-image.png";
   };
 
   return (
@@ -151,7 +151,7 @@ export default function Home() {
                                 // Ha a kép hibás, azonnal a placeholderre váltunk, 
                                 // és letiltjuk a további hibafigyelést a ciklus elkerülése érdekében.
                                 e.target.onerror = null; 
-                                e.target.src = "https://via.placeholder.com/300?text=Kép+hiba";
+                                e.target.src = "/no-image.png";
                             }}
                         />
 
