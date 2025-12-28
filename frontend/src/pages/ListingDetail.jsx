@@ -7,6 +7,7 @@ export default function ListingDetail() {
   const { user } = useAuth();
   const [listing, setListing] = useState(null);
   const [qty, setQty] = useState(1);
+  const BASE_UPLOAD_URL = "http://localhost/legora/uploads/";
 
   useEffect(() => {
     // Mivel a backend listát ad vissza, itt kliens oldalon szűrünk (a lego.js mintájára)
@@ -20,15 +21,33 @@ export default function ListingDetail() {
       });
   }, [id]);
 
+  const getImageUrl = (l) => {
+      // Ha van feltöltött saját kép
+      if (l.image_url && l.image_url !== "") {
+          return `${BASE_UPLOAD_URL}${l.image_url}`;
+      }
+      // Ha nincs, akkor a LEGO API kép (ha létezik a struktúrában)
+      if (l.lego_data && l.lego_data.img_url) {
+          return l.lego_data.img_url;
+      }
+      if (l.lego_meta && l.lego_meta.img_url) {
+          return l.lego_meta.img_url;
+      }
+      // Végső esetben placeholder
+      return "/no-image.png";
+  };
+
   const addToCart = async () => {
     if (!user) return alert("Jelentkezz be!");
+    //  Készletellenőrzés 
+    if (listing.quantity === 0) { return alert("Ez a termék jelenleg nem elérhető."); }
     const res = await fetch('/api/cart/add_to_cart.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listing_id: listing.id, quantity: qty })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listing_id: listing.id, quantity: qty })
     });
     const data = await res.json();
-    if(data.status === 'success') alert("Kosárba téve!");
+    if (data.status === 'success') alert("Kosárba téve!");
     else alert("Hiba: " + data.message);
   };
 
@@ -39,25 +58,26 @@ export default function ListingDetail() {
       <div className="card p-4">
         <div className="row g-5">
           <div className="col-lg-6">
-            <img src={listing.lego_data?.img_url || 'https://via.placeholder.com/400'} className="img-fluid rounded" alt="Termék" />
+            <img src={getImageUrl(listing)} className="img-fluid rounded" alt="Termék" />
           </div>
           <div className="col-lg-6">
             <h1>{listing.lego_data?.name || `Tétel #${listing.id}`}</h1>
-            <span className={`badge bg-${listing.item_condition==='new'?'success':'warning'} mb-3`}>
-                {listing.item_condition === 'new' ? 'Új' : 'Használt'}
+            <span className={`badge bg-${listing.item_condition === 'new' ? 'success' : 'warning'} mb-3`}>
+              {listing.item_condition === 'new' ? 'Új' : 'Használt'}
             </span>
             <h3 className="text-primary">{Number(listing.price).toLocaleString()} Ft</h3>
             <p className="lead text-muted">{listing.description}</p>
             <p>Eladó: <strong>{listing.seller}</strong></p>
-            
+            {listing.quantity > 0 ? (<span className="badge bg-success">{listing.quantity} db elérhető</span>) : (<span className="badge bg-danger">Elfogyott</span>)}
+
             <div className="row align-items-end mt-4 border-top pt-3">
-                <div className="col-md-4">
-                    <label>Mennyiség</label>
-                    <input type="number" className="form-control" value={qty} min="1" onChange={e => setQty(parseInt(e.target.value))} />
-                </div>
-                <div className="col-md-8">
-                    <button className="btn btn-primary w-100" onClick={addToCart}>Kosárba teszem</button>
-                </div>
+              <div className="col-md-4">
+                <label>Mennyiség</label>
+                <input type="number" className="form-control" value={qty} min="1" max={listing.quantity} onChange={e => setQty(parseInt(e.target.value))} />
+              </div>
+              <div className="col-md-8">
+                <button className="btn btn-primary w-100" onClick={addToCart}>Kosárba teszem</button>
+              </div>
             </div>
           </div>
         </div>
