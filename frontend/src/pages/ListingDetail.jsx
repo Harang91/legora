@@ -61,7 +61,7 @@ export default function ListingDetail() {
             <img src={getImageUrl(listing)} className="img-fluid rounded" alt="Termék" />
           </div>
           <div className="col-lg-6">
-            <h1>{l.lego_meta?.name || l.item_name || `Tétel #${l.item_id}`}</h1>
+          <h1>{listing.lego_meta?.name || listing.item_name}</h1>
             <span className={`badge bg-${listing.item_condition === 'new' ? 'success' : 'warning'} mb-3`}>
               {listing.item_condition === 'new' ? 'Új' : 'Használt'}
             </span>
