@@ -162,7 +162,7 @@ export default function Home() {
                                     <div className="card-body d-flex flex-column bg-light">
                                         {/* Itt próbáljuk megjeleníteni a nevet */}
                                         <h5 className="card-title text-truncate" title={l.lego_data?.name || l.lego_meta?.name}>
-                                            {l.lego_data?.name || l.lego_meta?.name || l.item_name || `Tétel #${l.item_id}`}
+                                            {l.lego_data?.name || l.lego_meta?.name || l.item_name || `Tétel #${l.item_name}`}
                                         </h5>
                                         <p className="card-text text-muted small mb-1">
                                             Azonosító: <strong>{l.item_id}</strong>

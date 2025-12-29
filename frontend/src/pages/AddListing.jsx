@@ -6,7 +6,7 @@ export default function AddListing() {
   
   // 1. STATE: Itt adjuk hozzá a 'name' mezőt a kezdőállapothoz
   const [data, setData] = useState({
-    name: '',       // <--- EZ KELL A NÉVHEZ
+    item_name: '',       // <--- EZ KELL A NÉVHEZ
     item_type: 'set', 
     item_id: '', 
     price: '', 
@@ -22,9 +22,9 @@ export default function AddListing() {
 
     const formData = new FormData();
     // 2. KÜLDÉS: Itt fűzzük hozzá az űrlap adataihoz
-    formData.append('name', data.name); 
     formData.append('item_type', data.item_type);
     formData.append('item_id', data.item_id);
+    formData.append('item_name', data.item_name);
     formData.append('price', data.price);
     formData.append('quantity', data.quantity);
     formData.append('item_condition', data.item_condition);
@@ -87,8 +87,9 @@ export default function AddListing() {
                     type="text" 
                     className="form-control" 
                     required 
-                    value={data.name} 
-                    onChange={e => setData({...data, name: e.target.value})} 
+                    value={data.item_name}
+                    onChange={e => setData({...data, item_name: e.target.value})}
+ 
                     placeholder="Pl. Millennium Falcon" 
                 />
                 <div className="form-text">Add meg a készlet vagy figura nevét.</div>

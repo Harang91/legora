@@ -30,7 +30,7 @@ $seller_id = $_GET['seller_id'] ?? null;
 try {
     // Alap SQL (csak aktív hirdetések)
     // JAVÍTVA: Hozzáadtuk az 'l.custom_image_url' mezőt a felsoroláshoz!
-    $sql = "SELECT l.id, l.item_type, l.item_id, l.quantity, l.price, l.item_condition,
+    $sql = "SELECT l.id, l.item_type, l.item_id, l.item_name, l.quantity, l.price, l.item_condition,
                    l.description, l.created_at, l.custom_image_url, u.username AS seller
             FROM listings l
             JOIN users u ON l.user_id = u.id

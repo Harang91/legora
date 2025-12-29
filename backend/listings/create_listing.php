@@ -16,6 +16,7 @@ if (!isset($_SESSION['user_id'])) {
 // Adatok fogadása (FormData miatt most $_POST-ban vannak, nem JSON-ben!)
 $item_type = $_POST['item_type'] ?? null;
 $item_id = $_POST['item_id'] ?? null;
+$item_name = $_POST['item_name'] ?? null;
 $price = $_POST['price'] ?? null;
 $quantity = $_POST['quantity'] ?? 1;
 $item_condition = $_POST['item_condition'] ?? 'used';
@@ -68,14 +69,15 @@ if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
 }
 
 try {
-    $sql = "INSERT INTO listings (user_id, item_type, item_id, price, quantity, item_condition, description, custom_image_url) 
-            VALUES (:user_id, :item_type, :item_id, :price, :quantity, :item_condition, :description, :custom_image_url)";
+    $sql = "INSERT INTO listings (user_id, item_type, item_id, item_name, price, quantity, item_condition, description, custom_image_url) 
+            VALUES (:user_id, :item_type, :item_id, :item_name, :price, :quantity, :item_condition, :description, :custom_image_url)";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':user_id' => $_SESSION['user_id'],
         ':item_type' => $item_type,
         ':item_id' => $item_id,
+        ':item_name' => $item_name,
         ':price' => $price,
         ':quantity' => $quantity,
         ':item_condition' => $item_condition,
