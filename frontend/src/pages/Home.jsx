@@ -22,9 +22,9 @@ export default function Home() {
 
         // Döntés: search.php vagy get_listings.php
         if (searchTerm) {
-            url = `/api/listings/search.php?${params.toString()}`;
+            url = `/api/listings/search.php?limit=200&${params.toString()}`;
         } else {
-            url = `/api/listings/get_listings.php?${params.toString()}`;
+            url = `/api/listings/get_listings.php?limit=200&${params.toString()}`;
         }
 
         fetch(url)

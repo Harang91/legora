@@ -11,7 +11,7 @@ export default function ListingDetail() {
 
   useEffect(() => {
     // Mivel a backend listát ad vissza, itt kliens oldalon szűrünk (a lego.js mintájára)
-    fetch('/api/listings/get_listings.php')
+    fetch('/api/listings/get_listings.php?limit=200')
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
@@ -22,19 +22,19 @@ export default function ListingDetail() {
   }, [id]);
 
   const getImageUrl = (l) => {
-      // Ha van feltöltött saját kép
-      if (l.image_url && l.image_url !== "") {
-          return `${BASE_UPLOAD_URL}${l.image_url}`;
-      }
-      // Ha nincs, akkor a LEGO API kép (ha létezik a struktúrában)
-      if (l.lego_data && l.lego_data.img_url) {
-          return l.lego_data.img_url;
-      }
-      if (l.lego_meta && l.lego_meta.img_url) {
-          return l.lego_meta.img_url;
-      }
-      // Végső esetben placeholder
-      return "/no-image.png";
+    // Ha van feltöltött saját kép
+    if (l.image_url && l.image_url !== "") {
+      return `${BASE_UPLOAD_URL}${l.image_url}`;
+    }
+    // Ha nincs, akkor a LEGO API kép (ha létezik a struktúrában)
+    if (l.lego_data && l.lego_data.img_url) {
+      return l.lego_data.img_url;
+    }
+    if (l.lego_meta && l.lego_meta.img_url) {
+      return l.lego_meta.img_url;
+    }
+    // Végső esetben placeholder
+    return "/no-image.png";
   };
 
   const addToCart = async () => {
@@ -58,10 +58,18 @@ export default function ListingDetail() {
       <div className="card p-4">
         <div className="row g-5">
           <div className="col-lg-6">
-            <img src={getImageUrl(listing)} className="img-fluid rounded" alt="Termék" />
+            <img
+              src={getImageUrl(listing)}
+              className="img-fluid rounded"
+              alt="Termék"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/no-image.png";
+              }}
+            />
           </div>
           <div className="col-lg-6">
-          <h1>{listing.lego_meta?.name || listing.item_name}</h1>
+            <h1>{listing.lego_meta?.name || listing.item_name}</h1>
             <span className={`badge bg-${listing.item_condition === 'new' ? 'success' : 'warning'} mb-3`}>
               {listing.item_condition === 'new' ? 'Új' : 'Használt'}
             </span>
