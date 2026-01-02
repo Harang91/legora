@@ -64,6 +64,7 @@ if ($q) {
         OR s.name LIKE ?
         OR m.name LIKE ?
         OR p.name LIKE ?
+        OR l.item_name LIKE ?
     )";
 
     $params[] = "%$q%"; // description
@@ -71,6 +72,7 @@ if ($q) {
     $params[] = "%$q%"; // set name
     $params[] = "%$q%"; // minifig name
     $params[] = "%$q%"; // part name
+    $params[] = "%$q%"; // item_name
 }
 
 
