@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        // Most már a /backend mappára kell mutatni!
+        
         target: 'http://localhost/legora/backend', 
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')

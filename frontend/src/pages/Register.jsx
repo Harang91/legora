@@ -9,7 +9,7 @@ export default function Register() {
     hossz: false, kisbetu: false, nagybetu: false, szam: false, specKar: false
   });
 
-  // Jelszó ellenőrzés (lego.js alapján)
+
   useEffect(() => {
     const p = formData.password;
     setValidity({
@@ -33,7 +33,7 @@ export default function Register() {
       const res = await fetch('/api/auth/register.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, captcha: '1234' }) // Captcha a JS-ből
+        body: JSON.stringify({ ...formData, captcha: '1234' }) 
       });
       const result = await res.json();
       

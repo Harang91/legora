@@ -3,10 +3,10 @@ import { createContext, useState, useContext, useEffect } from 'react';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // currentUser
-  const [admin, setAdmin] = useState(null); // currentAdmin
+  const [user, setUser] = useState(null); 
+  const [admin, setAdmin] = useState(null); 
 
-  // --- EZ A RÉSZ HIÁNYZOTT: Visszatöltés frissítéskor ---
+  
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -18,18 +18,16 @@ export const AuthProvider = ({ children }) => {
       }
     }
   }, []);
-  // -----------------------------------------------------
-
-  // Login függvény
+  
   const loginUser = (userData) => {
     setUser(userData);
-    // Biztonsági mentés, ha a login oldalon nem futna le
+    
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const loginAdmin = (adminData) => setAdmin(adminData);
 
-  // Logout (API hívás + state törlés + localStorage törlés)
+ 
   const logout = async () => {
     try {
       await fetch('/api/auth/logout.php', { method: 'POST' });
@@ -37,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       console.error("Logout error", error);
     }
     
-    localStorage.removeItem('user'); // Töröljük a mentést
+    localStorage.removeItem('user'); 
     setUser(null);
     setAdmin(null);
   };

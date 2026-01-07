@@ -1,15 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import { useState } from 'react'; // 1. useState importálása
+import { useState } from 'react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // 2. Állapot a menü lenyitásához (alapból igaz, azaz "összecsukott")
+
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
 
-  // 3. Függvény, ami váltogatja az állapotot
+
   const handleNavCollapse = () => setIsNavCollapsed(!isNavCollapsed);
 
   return (
@@ -20,7 +20,7 @@ export default function Navbar() {
           to="/"
           onClick={() => {
             setIsNavCollapsed(true);
-            window.location.href = "/";   // teljes újratöltés
+            window.location.href = "/";
           }}
         >
           <img src="/creator-brick-logo.png" alt="Logo" className="me-2" />
@@ -28,11 +28,11 @@ export default function Navbar() {
         </Link>
 
 
-        {/* 4. A gomb mostantól a React függvényt hívja meg, kivettük a data-bs-toggle részeket */}
+
         <button
           className="navbar-toggler"
           type="button"
-          onClick={handleNavCollapse} // Itt hívjuk meg a váltót
+          onClick={handleNavCollapse}
           aria-controls="navbarContent"
           aria-expanded={!isNavCollapsed}
           aria-label="Toggle navigation"
@@ -40,17 +40,16 @@ export default function Navbar() {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* 5. Itt döntjük el, hogy rajta legyen-e a 'show' osztály */}
+
         <div className={`${isNavCollapsed ? 'collapse' : ''} navbar-collapse`} id="navbarContent">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold">
-            {/* Tipp: Kattintáskor be is csukhatod a menüt, ha hozzáadod az onClick-et a linkekhez is */}
             <li className="nav-item">
               <Link
                 className="nav-link"
                 to="/"
                 onClick={() => {
                   setIsNavCollapsed(true);
-                  window.location.href = "/";   // ← teljes újratöltés
+                  window.location.href = "/";
                 }}
               >
                 Főoldal

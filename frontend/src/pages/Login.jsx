@@ -7,10 +7,10 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   
-  const { loginUser, user } = useAuth(); // user is kell az ellenőrzéshez
+  const { loginUser, user } = useAuth();
   const navigate = useNavigate();
 
-  // Ha már be van lépve (pl. frissítés után betöltött az AuthContext), dobja át
+  
   useEffect(() => {
     if (user) {
       navigate('/'); 
@@ -30,13 +30,13 @@ export default function Login() {
       const data = await res.json();
       
       if (data.status === 'success') {
-        // 1. Elmentjük a böngészőbe
+        
         localStorage.setItem('user', JSON.stringify(data.data));
         
-        // 2. Beállítjuk a React állapotot
+
         loginUser(data.data);
         
-        // 3. Átirányítunk
+        
         navigate('/');
       } else {
         setError(data.message);

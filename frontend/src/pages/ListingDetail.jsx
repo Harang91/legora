@@ -10,7 +10,7 @@ export default function ListingDetail() {
   const BASE_UPLOAD_URL = "http://localhost/legora/uploads/";
 
   useEffect(() => {
-    // Mivel a backend listát ad vissza, itt kliens oldalon szűrünk (a lego.js mintájára)
+   
     fetch('/api/listings/get_listings.php?limit=200')
       .then(res => res.json())
       .then(data => {
@@ -22,24 +22,24 @@ export default function ListingDetail() {
   }, [id]);
 
   const getImageUrl = (l) => {
-    // Ha van feltöltött saját kép
+   
     if (l.image_url && l.image_url !== "") {
       return `${BASE_UPLOAD_URL}${l.image_url}`;
     }
-    // Ha nincs, akkor a LEGO API kép (ha létezik a struktúrában)
+    
     if (l.lego_data && l.lego_data.img_url) {
       return l.lego_data.img_url;
     }
     if (l.lego_meta && l.lego_meta.img_url) {
       return l.lego_meta.img_url;
     }
-    // Végső esetben placeholder
+   
     return "/no-image.png";
   };
 
   const addToCart = async () => {
     if (!user) return alert("Jelentkezz be!");
-    //  Készletellenőrzés 
+ 
     if (listing.quantity === 0) { return alert("Ez a termék jelenleg nem elérhető."); }
     const res = await fetch('/api/cart/add_to_cart.php', {
       method: 'POST',

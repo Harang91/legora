@@ -8,8 +8,7 @@ export default function Home() {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('');
 
-    // 1. KONFIGURÁCIÓ: Itt add meg a Backend mappád pontos elérési útját!
-    // Ha a XAMPP-ban a mappa neve 'legora', akkor ez így helyes:
+
     const BASE_UPLOAD_URL = "http://localhost/legora/uploads/";
 
     const fetchListings = () => {
@@ -20,7 +19,7 @@ export default function Home() {
         if (searchTerm) params.append('q', searchTerm);
         if (filterType) params.append('item_type', filterType);
 
-        // Döntés: search.php vagy get_listings.php
+
         if (searchTerm) {
             url = `/api/listings/search.php?limit=200&${params.toString()}`;
         } else {
@@ -32,7 +31,7 @@ export default function Home() {
             .then(resp => {
                 if (resp.status === 'success') {
                     const items = resp.data.listings || resp.data.results || [];
-                    console.log("Beérkező adatok:", items); // 2. DEBUG: Nézd meg a konzolon, hogy van-e benne 'lego_data' vagy 'name'!
+                    console.log("Beérkező adatok:", items);
                     setListings(items);
                 } else {
                     setListings([]);
@@ -61,20 +60,20 @@ export default function Home() {
         window.location.reload();
     };
 
-    // 3. SEGÉDFÜGGVÉNY: Kép URL generálása biztonságosan
+
     const getImageUrl = (l) => {
-        // Ha van feltöltött saját kép
+
         if (l.image_url && l.image_url !== "") {
             return `${BASE_UPLOAD_URL}${l.image_url}`;
         }
-        // Ha nincs, akkor a LEGO API kép (ha létezik a struktúrában)
+
         if (l.lego_data && l.lego_data.img_url) {
             return l.lego_data.img_url;
         }
         if (l.lego_meta && l.lego_meta.img_url) {
             return l.lego_meta.img_url;
         }
-        // Végső esetben placeholder
+
         return "/no-image.png";
     };
 
@@ -141,15 +140,13 @@ export default function Home() {
                                 <div className="card h-100 listing-card border-0">
                                     <div className="position-relative bg-white rounded-top p-3 text-center">
 
-                                        {/* 4. JAVÍTOTT KÉP MEGJELENÍTÉS (Nincs végtelen ciklus) */}
+
                                         <img
                                             src={getImageUrl(l)}
                                             className="img-fluid"
                                             style={{ height: '180px', objectFit: 'contain' }}
                                             alt="lego item"
                                             onError={(e) => {
-                                                // Ha a kép hibás, azonnal a placeholderre váltunk, 
-                                                // és letiltjuk a további hibafigyelést a ciklus elkerülése érdekében.
                                                 e.target.onerror = null;
                                                 e.target.src = "/no-image.png";
                                             }}
@@ -160,7 +157,7 @@ export default function Home() {
                                         </span>
                                     </div>
                                     <div className="card-body d-flex flex-column bg-light">
-                                        {/* Itt próbáljuk megjeleníteni a nevet */}
+
                                         <h5 className="card-title text-truncate" title={l.lego_data?.name || l.lego_meta?.name}>
                                             {l.lego_data?.name || l.lego_meta?.name || l.item_name || `Tétel #${l.item_name}`}
                                         </h5>

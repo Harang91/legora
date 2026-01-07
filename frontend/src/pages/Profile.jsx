@@ -4,18 +4,16 @@ import { useAuth } from '../AuthContext';
 export default function Profile() {
   const { user, loginUser } = useAuth(); 
 
-  // 1. Aktív fül betöltése
+  
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('profile_active_tab') || 'data';
   });
 
-  // 2. Profil inicializálása:
-  // Kiemelten figyelünk rá, hogy a localStorage-ból induljunk, 
-  // így azonnal látszanak az adatok.
+  
   const [profile, setProfile] = useState(() => {
-     // Megpróbáljuk betölteni a 'user'-t a tárolóból
+    
      const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
-     // Összefésüljük a Context-ből jövő userrel (ha van)
+     
      return { 
         username: '', email: '', phone: '', address: '', 
         ...savedUser, 
@@ -26,12 +24,12 @@ export default function Profile() {
   const [orders, setOrders] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Fül változás mentése
+ 
   useEffect(() => {
     localStorage.setItem('profile_active_tab', activeTab);
   }, [activeTab]);
 
-  // ADATOK LEKÉRÉSE ÉS "OKOS" ÖSSZEFÉSÜLÉS
+ 
   useEffect(() => {
     if (activeTab === 'orders') {
         loadOrders();
@@ -44,20 +42,16 @@ export default function Profile() {
             const serverData = d.data;
 
             setProfile(prev => {
-                // --- A TRÜKK: ---
-                // Csak akkor írjuk felül a helyi adatot a szerver adataival,
-                // ha a szerver TÉNYLEG küldött valamit. Ha üreset küld,
-                // de nálunk már be van írva valami, akkor megtartjuk a miénket.
+                
                 const mergedData = {
-                    ...prev, // Indulunk a meglévő helyi adatból
-                    ...serverData, // Rátesszük a szerver adatait
+                    ...prev, 
+                    ...serverData,                    
                     
-                    // DE: Ha a szerver címe/telefonja üres, visszatesszük a helyit!
                     phone: serverData.phone ? serverData.phone : prev.phone,
                     address: serverData.address ? serverData.address : prev.address
                 };
 
-                // Ha változott valami, frissítjük a globális tárolót is
+               
                 if (JSON.stringify(mergedData) !== JSON.stringify(prev)) {
                     loginUser(mergedData);
                     localStorage.setItem('user', JSON.stringify(mergedData));
@@ -91,8 +85,7 @@ export default function Profile() {
             alert('Mentve!');
             setIsEditing(false);
             
-            // Mentéskor biztosítjuk, hogy a localStorage-ba a JELENLEGI űrlap adatok kerüljenek
-            // Akkor is, ha a szerver válasza hiányos lenne.
+          
             const finalData = { ...profile, ...(d.data || {}) };
             
             loginUser(finalData);

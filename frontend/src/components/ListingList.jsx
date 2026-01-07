@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api'; // Most már megtalálja az api.js-t!
+import { api } from '../api'; 
 
-// FONTOS: Hol vannak a feltöltött képek? (XAMPP uploads mappa)
+
 const IMAGE_BASE_URL = 'http://localhost/legora/uploads/'; 
 
 const ListingList = () => {
@@ -23,13 +23,13 @@ const ListingList = () => {
     }, []);
 
     const toggleStatus = async (listing) => {
-        // Ha van törlési dátum, akkor visszaállítjuk, ha nincs, akkor töröljük
+        
         const action = listing.deleted_at === null ? api.deleteListing : api.restoreListing;
         
         try {
             const res = await action(listing.id);
             if (res.status === 'success') {
-                fetchListings(); // Lista frissítése
+                fetchListings(); 
             } else {
                 alert("Szerver üzenet: " + res.message);
             }

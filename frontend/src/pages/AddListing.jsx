@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 export default function AddListing() {
   const navigate = useNavigate();
   
-  // 1. STATE: Itt adjuk hozzá a 'name' mezőt a kezdőállapothoz
+ 
   const [data, setData] = useState({
-    item_name: '',       // <--- EZ KELL A NÉVHEZ
+    item_name: '',      
     item_type: 'set', 
     item_id: '', 
     price: '', 
@@ -21,7 +21,7 @@ export default function AddListing() {
     e.preventDefault();
 
     const formData = new FormData();
-    // 2. KÜLDÉS: Itt fűzzük hozzá az űrlap adataihoz
+    
     formData.append('item_type', data.item_type);
     formData.append('item_id', data.item_id);
     formData.append('item_name', data.item_name);
@@ -80,7 +80,7 @@ export default function AddListing() {
                 />
             </div>
 
-            {/* --- 3. MEGJELENÍTÉS: EZT A RÉSZT KERESD! --- */}
+            
             <div className="mb-3">
                 <label className="form-label fw-bold">Megnevezés</label>
                 <input 
@@ -94,7 +94,7 @@ export default function AddListing() {
                 />
                 <div className="form-text">Add meg a készlet vagy figura nevét.</div>
             </div>
-            {/* ------------------------------------------- */}
+         
 
             <div className="mb-3">
                 <label className="form-label">Saját fotó feltöltése (Opcionális)</label>

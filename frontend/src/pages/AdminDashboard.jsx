@@ -26,14 +26,14 @@ export default function AdminDashboard() {
   const loadUsers = async () => {
     const res = await fetch('/api/admin/get_users.php');
     const data = await res.json();
-    if (data.status === 'success') setUsers(data.users || []); // Javított array kezelés
+    if (data.status === 'success') setUsers(data.users || []); 
   };
 
   const toggleUser = async (id) => {
     if(!confirm("Biztos?")) return;
     await fetch('/api/admin/toggle_user.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }, // A javított JSON header
+        headers: { 'Content-Type': 'application/json' }, 
         body: JSON.stringify({ id })
     });
     loadUsers();

@@ -24,8 +24,9 @@ if (!isset($_SESSION['user_id'])) {
 
 try {
     // Felhasználó adatainak lekérése
+    // JAVÍTÁS: Hozzáadtuk az address és phone mezőket a listához!
     $stmt = $pdo->prepare("
-        SELECT id, username, email, created_at 
+        SELECT id, username, email, created_at, address, phone 
         FROM users 
         WHERE id = ?
     ");
@@ -43,8 +44,6 @@ try {
     http_response_code(500);
     errorResponse("Adatbázis hiba: " . $e->getMessage());
 }
-
-
 /*
 
 Bevezető leírás

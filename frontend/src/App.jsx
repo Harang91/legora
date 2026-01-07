@@ -3,12 +3,12 @@ import { AuthProvider } from './AuthContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import Register from './pages/Register'; // ÚJ
-import Cart from './pages/Cart'; // ÚJ
-import Profile from './pages/Profile'; // ÚJ
-import ListingDetail from './pages/ListingDetail'; // ÚJ
-import AddListing from './pages/AddListing'; // ÚJ
-import AdminLogin from './pages/AdminLogin'; // ÚJ
+import Register from './pages/Register';
+import Cart from './pages/Cart';
+import Profile from './pages/Profile'; 
+import ListingDetail from './pages/ListingDetail';
+import AddListing from './pages/AddListing'; 
+import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
