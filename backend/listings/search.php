@@ -24,10 +24,12 @@ $mode       = $_GET['mode']       ?? "search";
 // JAVÍTVA: Hozzáadtuk a 'custom_image_url'-t a lekérdezéshez!
 $sql = "SELECT 
             l.id AS listing_id, 
+            l.item_name,
             l.item_type, 
             l.item_id, 
             l.item_condition, 
             l.price, 
+            l.quantity,             
             l.description, 
             l.created_at, 
             l.custom_image_url, 
