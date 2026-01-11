@@ -1,7 +1,8 @@
 <?php
+
 require_once __DIR__ . '/../shared/init.php';
 
-// Csak POST kérést engedünk
+// Csak POST kérés engedélyezett
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     errorResponse("Csak POST kérés engedélyezett");
@@ -13,81 +14,73 @@ if (!isset($_SESSION['user_id'])) {
     errorResponse("Bejelentkezés szükséges");
 }
 
-// Adatok fogadása (FormData miatt most $_POST-ban vannak, nem JSON-ben!)
-$item_type = $_POST['item_type'] ?? null;
-$item_id = $_POST['item_id'] ?? null;
-$item_name = $_POST['item_name'] ?? null;
-$price = $_POST['price'] ?? null;
-$quantity = $_POST['quantity'] ?? 1;
+// FormData adatok beolvasása
+$item_type      = $_POST['item_type'] ?? null;
+$item_id        = $_POST['item_id'] ?? null;
+$item_name      = $_POST['item_name'] ?? null;
+$price          = $_POST['price'] ?? null;
+$quantity       = $_POST['quantity'] ?? 1;
 $item_condition = $_POST['item_condition'] ?? 'used';
-$description = $_POST['description'] ?? '';
+$description    = $_POST['description'] ?? '';
 
-// Validálás
+// Kötelező mezők ellenőrzése
 if (!$item_type || !$item_id || !$price) {
     http_response_code(422);
     errorResponse("Hiányzó adatok (típus, azonosító, ár kötelező)");
 }
 
-// FÁJL FELTÖLTÉS KEZELÉSE
+// Kép feltöltés kezelése
 $custom_image_path = null;
 
 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+
     $fileTmpPath = $_FILES['image']['tmp_name'];
-    $fileName = $_FILES['image']['name'];
-    $fileSize = $_FILES['image']['size'];
-    $fileType = $_FILES['image']['type'];
-    
-    // Kiterjesztés ellenőrzése
-    $fileNameCmps = explode(".", $fileName);
-    $fileExtension = strtolower(end($fileNameCmps));
+    $fileName    = $_FILES['image']['name'];
+
+    $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
     $allowedfileExtensions = ['jpg', 'gif', 'png', 'jpeg', 'webp'];
 
     if (in_array($fileExtension, $allowedfileExtensions)) {
-        // Új fájlnév generálása (hogy ne írják felül egymást)
+
         $newFileName = md5(time() . $fileName) . '.' . $fileExtension;
-        
-        // Célmappa: backend/uploads/
+
         $uploadFileDir = __DIR__ . '/../uploads/';
-        
-        // Ha nincs uploads mappa, létrehozzuk
         if (!is_dir($uploadFileDir)) {
             mkdir($uploadFileDir, 0777, true);
         }
 
         $dest_path = __DIR__ . '/../../frontend/public/uploads/' . $newFileName;
 
-
-        if(move_uploaded_file($fileTmpPath, $dest_path)) {
-            // Sikeres feltöltés -> adatbázisba ez az útvonal kerül
+        if (move_uploaded_file($fileTmpPath, $dest_path)) {
             $custom_image_path = 'uploads/' . $newFileName;
         } else {
-            errorResponse("Hiba a fájl mozgatásakor. Írási jogok?");
+            errorResponse("Hiba a fájl mozgatásakor");
         }
     } else {
-        errorResponse("Csak képfájlok engedélyezettek (jpg, png, webp)!");
+        errorResponse("Csak képfájlok engedélyezettek (jpg, png, webp)");
     }
 }
 
 try {
-    $sql = "INSERT INTO listings (user_id, item_type, item_id, item_name, price, quantity, item_condition, description, custom_image_url) 
+    $sql = "INSERT INTO listings 
+            (user_id, item_type, item_id, item_name, price, quantity, item_condition, description, custom_image_url)
             VALUES (:user_id, :item_type, :item_id, :item_name, :price, :quantity, :item_condition, :description, :custom_image_url)";
-    
+
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
-        ':user_id' => $_SESSION['user_id'],
-        ':item_type' => $item_type,
-        ':item_id' => $item_id,
-        ':item_name' => $item_name,
-        ':price' => $price,
-        ':quantity' => $quantity,
-        ':item_condition' => $item_condition,
-        ':description' => $description,
-        ':custom_image_url' => $custom_image_path // Ez NULL lesz, ha nincs kép
+        ':user_id'          => $_SESSION['user_id'],
+        ':item_type'        => $item_type,
+        ':item_id'          => $item_id,
+        ':item_name'        => $item_name,
+        ':price'            => $price,
+        ':quantity'         => $quantity,
+        ':item_condition'   => $item_condition,
+        ':description'      => $description,
+        ':custom_image_url' => $custom_image_path
     ]);
 
     successResponse("Hirdetés sikeresen létrehozva", ["id" => $pdo->lastInsertId()]);
-
 } catch (PDOException $e) {
     http_response_code(500);
-    errorResponse("Adatbázis hiba: " . $e->getMessage());
+    errorResponse("Adatbázis hiba");
 }
