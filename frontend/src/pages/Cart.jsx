@@ -46,7 +46,7 @@ export default function Cart() {
 
   return (
     <div className="container mt-4 mb-5">
-      <h3>Kosár</h3>
+      <h3 id="cart">Kosár</h3>
       <table className="table align-middle">
         <thead className="table-light">
           <tr><th>Termék</th><th>Ár</th><th>Mennyiség</th><th>Összesen</th><th></th></tr>
