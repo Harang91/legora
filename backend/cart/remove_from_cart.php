@@ -1,19 +1,8 @@
 <?php
-// Központi inicializáló fájl betöltése (DB, session, security, response, validation, helpers)
+
 require_once __DIR__ . '/../shared/init.php';
 
-/**
- * remove_from_cart.php
- * ---------------------
- * Tétel mennyiségének csökkentése vagy teljes eltávolítása a kosárból.
- * - Csak bejelentkezett user hívhatja meg.
- * - Body: JSON { listing_id, quantity }
- * - Ha a meglévő mennyiség > quantity → frissítjük a mennyiséget.
- * - Ha a meglévő mennyiség <= quantity → teljes törlés a kosárból.
- * - Egységes JSON válasz formátum.
- */
-
-// Csak DELETE kérést engedünk
+// Csak DELETE kérés engedélyezett
 if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
     http_response_code(405);
     errorResponse("Érvénytelen kérés (csak DELETE engedélyezett)");
@@ -27,20 +16,20 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Request body beolvasása
+// JSON body beolvasása
 $input = json_decode(file_get_contents('php://input'), true);
 
 $listing_id = $input['listing_id'] ?? null;
 $quantity   = isset($input['quantity']) ? (int)$input['quantity'] : null;
 
-// Alap validáció
+// Validáció
 if (!$listing_id || !$quantity || $quantity < 1) {
     http_response_code(422);
     errorResponse("Érvénytelen vagy hiányzó mezők");
 }
 
 try {
-    // Ellenőrizzük, hogy a tétel szerepel-e a kosárban
+    // Kosár tétel ellenőrzése
     $check = $pdo->prepare("SELECT id, quantity FROM cart WHERE user_id = ? AND listing_id = ?");
     $check->execute([$user_id, $listing_id]);
     $existing = $check->fetch(PDO::FETCH_ASSOC);
@@ -53,7 +42,7 @@ try {
     $currentQty = (int)$existing['quantity'];
 
     if ($currentQty > $quantity) {
-        // Csökkentjük a mennyiséget
+        // Mennyiség csökkentése
         $newQty = $currentQty - $quantity;
         $upd = $pdo->prepare("UPDATE cart SET quantity = ?, added_at = NOW() WHERE id = ?");
         $upd->execute([$newQty, $existing['id']]);
@@ -63,7 +52,7 @@ try {
             "quantity" => $newQty
         ]);
     } else {
-        // Ha a quantity <= meglévő mennyiség → teljes törlés
+        // Teljes törlés
         $del = $pdo->prepare("DELETE FROM cart WHERE id = ?");
         $del->execute([$existing['id']]);
 
@@ -75,36 +64,3 @@ try {
     http_response_code(500);
     errorResponse("Adatbázis hiba: " . $e->getMessage());
 }
-
-/* 
-### Cél  
-A `remove_from_cart.php` endpoint feladata, hogy a **felhasználó kosarából csökkentse egy tétel mennyiségét vagy teljesen eltávolítsa azt**.  
-- Csak bejelentkezett user hívhatja meg.  
-- Kötelező paraméterek: `listing_id`, `quantity` (JSON body).  
-- Ha a meglévő mennyiség nagyobb, mint a kért csökkentés → mennyiség frissítése.  
-- Ha a meglévő mennyiség kisebb vagy egyenlő → teljes törlés a kosárból.  
-- Egységes JSON válaszformátumot ad vissza.  
-
----
-
-###  Összegzés
-- **Mi változott?**
-  - A `header()` és `session_start()` kikerült → az `init.php` intézi.  
-  - Az `errorResponse()` és `successResponse()` függvények használata → egységes JSON válasz formátum.  
-  - A kód rövidebb, tisztább, minden közös logika az `init.php`‑ban van.  
-
-- **Miért jobb így?**
-  - Egységes hibakezelés → frontend mindig ugyanazt a formátumot kapja.  
-  - Kosár tételek kezelése egyszerű és átlátható: vagy frissítjük a mennyiséget, vagy töröljük a sort.  
-  - Vizsgán jól bemutatható → DELETE metódus, feltételes logika, biztonságos adatkezelés.  
-
-
-régikód
-## Magyarázat
-
-- **Autentikáció**: csak bejelentkezett user hívhatja meg.  
-- **Request body**: `listing_id` és `quantity` szükséges.  
-- **Ha a kosárban lévő mennyiség nagyobb** a kért csökkentésnél → frissítjük a mennyiséget.  
-- **Ha a kosárban lévő mennyiség kisebb vagy egyenlő** → teljesen töröljük a sort a kosárból.  
-- **Válasz**: mindig visszaadjuk a `cart_item_id`‑t és az új mennyiséget (vagy törlés esetén csak az ID‑t).  
-*/
