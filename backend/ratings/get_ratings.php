@@ -1,24 +1,14 @@
 <?php
-// Központi inicializáló fájl betöltése (DB, session, security, response, validation, helpers)
+
 require_once __DIR__ . '/../shared/init.php';
 
-/**
- * get_ratings.php
- * ----------------
- * Egy adott felhasználóhoz tartozó értékelések lekérése.
- * - Paraméter: rated_user_id (kötelező, GET query paraméter).
- * - Visszaadja az összes értékelést, az értékelők felhasználónevével együtt.
- * - Kiszámolja az átlagos értékelést is.
- * - Egységes JSON válasz formátum.
- */
-
-// Csak GET kérést engedünk
+// Csak GET kérés engedélyezett
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
     errorResponse("Érvénytelen kérés (csak GET engedélyezett)");
 }
 
-// Kötelező paraméter ellenőrzése
+// Kötelező paraméter
 $rated_user_id = $_GET['rated_user_id'] ?? null;
 if (!$rated_user_id) {
     http_response_code(422);
@@ -26,7 +16,7 @@ if (!$rated_user_id) {
 }
 
 try {
-    // Értékelések lekérése JOIN-nal a rater user nevére
+    // Értékelések lekérése
     $stmt = $pdo->prepare("
         SELECT 
             r.id AS rating_id,
@@ -43,7 +33,7 @@ try {
     $stmt->execute([$rated_user_id]);
     $ratings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Átlagos értékelés számítása
+    // Átlagos értékelés
     $avg = null;
     if ($ratings) {
         $sum = 0;
@@ -63,36 +53,3 @@ try {
     http_response_code(500);
     errorResponse("Adatbázis hiba: " . $e->getMessage());
 }
-
-
-/* 
-### Cél  
-A `get_ratings.php` endpoint feladata, hogy **egy adott felhasználóhoz tartozó értékeléseket lekérje**.  
-- Paraméter: `rated_user_id` (kötelező, GET query paraméter).  
-- Visszaadja az összes értékelést, az értékelők felhasználónevével együtt.  
-- Kiszámolja az átlagos értékelést is.  
-- Egységes JSON válaszformátumot ad vissza.  
-
-###  Összegzés
-- **Mi változott?**
-  - A `header()` és `session_start()` kikerült → az `init.php` intézi.  
-  - Az `errorResponse()` és `successResponse()` függvények használata → egységes JSON válasz formátum.  
-  - A kód rövidebb, tisztább, minden közös logika az `init.php`‑ban van.  
-
-- **Miért jobb így?**
-  - Egységes hibakezelés → frontend mindig ugyanazt a formátumot kapja.  
-  - Átlagos értékelés kiszámítása → felhasználóbarát összegzés.  
-  - Vizsgán jól bemutatható → GET metódus, paraméter validáció, JOIN, aggregáció (átlag).  
-
-
-
-régihez
-## Magyarázat
-
-- **Paraméter**: kötelező a `rated_user_id` (GET query paraméter).  
-- **JOIN**: a `ratings` táblát összekapcsoljuk a `users` táblával, hogy az értékelő felhasználóneve is megjelenjen.  
-- **Átlag**: kiszámoljuk az adott user átlagos értékelését, két tizedesre kerekítve.  
-- **Válasz**: tartalmazza a `rated_user_id`‑t, az átlagot, az értékelések számát, és az összes értékelést részletesen.  
-
-
-*/
