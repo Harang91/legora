@@ -1,32 +1,20 @@
 <?php
-// Központi inicializáló fájl betöltése (DB, session, security, response, helpers)
+
 require_once __DIR__ . '/../shared/init.php';
 
-/**
- * delete_listing.php (admin modul)
- * -------------------------
- * Admin funkció: hirdetés törlése (soft delete).
- * - Csak POST metódus engedélyezett.
- * - Ellenőrzi, hogy van-e aktív admin session.
- * - Ellenőrzi, hogy a hirdetés létezik-e.
- * - Ha már törölve van, hibát ad vissza.
- * - Soft delete módon törli a hirdetést (deleted_at = NOW()).
- * - JSON választ ad vissza: success vagy error.
- */
-
-// Csak POST kérést engedünk
+// Csak POST metódus engedélyezett
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     errorResponse("Csak POST metódus engedélyezett.");
 }
 
-// Ellenőrizzük, hogy van-e aktív admin session
+// Admin session ellenőrzése
 if (!isset($_SESSION['admin_id'])) {
     http_response_code(401);
     errorResponse("Nincs aktív admin session.");
 }
 
-// Paraméter ellenőrzése
+// Kötelező paraméter ellenőrzése
 $listingId = $_POST['id'] ?? null;
 if (!$listingId) {
     http_response_code(422);
@@ -34,11 +22,11 @@ if (!$listingId) {
 }
 
 try {
-    // Ellenőrizzük, hogy létezik-e a hirdetés
+    // Hirdetés lekérése
     $stmt = $pdo->prepare("
-        SELECT id, title, deleted_at 
-        FROM listings 
-        WHERE id = :id 
+        SELECT id, title, deleted_at
+        FROM listings
+        WHERE id = :id
         LIMIT 1
     ");
     $stmt->execute(['id' => $listingId]);
@@ -49,16 +37,16 @@ try {
         errorResponse("Nem található hirdetés ezzel az ID-val.");
     }
 
-    // Ha már törölve van
+    // Már törölt hirdetés ellenőrzése
     if ($listing['deleted_at'] !== null) {
         http_response_code(409);
         errorResponse("A hirdetés már törölve van.");
     }
 
-    // Soft delete: deleted_at mező beállítása az aktuális időre
+    // Soft delete
     $stmtDelete = $pdo->prepare("
-        UPDATE listings 
-        SET deleted_at = NOW() 
+        UPDATE listings
+        SET deleted_at = NOW()
         WHERE id = :id
     ");
     $stmtDelete->execute(['id' => $listingId]);
@@ -71,25 +59,3 @@ try {
     http_response_code(500);
     errorResponse("Adatbázis hiba: " . $e->getMessage());
 }
-
-
-/*
-
-## Cél:  
-A `delete_listing.php` az **admin modul** része, amelynek feladata, hogy az adminisztrátor soft delete művelettel törölhessen bármely hirdetést a rendszerből.  
-
-- **Csak POST metódus engedélyezett**, mivel módosító műveletről van szó.  
-- **Admin session ellenőrzés** biztosítja, hogy csak bejelentkezett admin férhessen hozzá.  
-- **Hirdetés ellenőrzése**: megnézi, hogy létezik‑e a hirdetés az adott ID alapján.  
-- **Törlés állapot vizsgálata**: ha a hirdetés már törölve van (`deleted_at` nem null), hibát ad vissza.  
-- **Soft delete megvalósítása**: a `deleted_at` mezőt az aktuális időre állítja, így a hirdetés inaktiválódik, de az adatai megmaradnak az adatbázisban.  
-- **JSON válasz**: minden esetben egységes választ ad vissza (`success` vagy `error` státusz, részletes üzenettel).  
-
-Ez az endpoint tehát az admin számára biztosítja a hirdetések biztonságos és visszaállítható törlését, összhangban a modul többi funkciójával (`admin_restore_listing.php`, `get_deleted_listings.php`).
-
-
-
-Régi:
--beállítja a `deleted_at` mezőt egy adott hirdetésnél. Így lesz mit listázni a `get_deleted_listings.php` modulban.
--- Az admin modulban nem törlöm fizikailag a hirdetést, hanem csak a `deleted_at` mezőt állítom be. Így az adat megmarad, visszakereshető, és a `get_deleted_listings.php` listázza a törölt hirdetéseket.
-*/
