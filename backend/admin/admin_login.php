@@ -2,13 +2,13 @@
 
 require_once __DIR__ . '/../shared/init.php';
 
-
+// Csak POST metódus engedélyezett
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     errorResponse("Csak POST metódus engedélyezett.");
 }
 
-
+// JSON body beolvasása
 $input = json_decode(file_get_contents('php://input'), true);
 
 if (!is_array($input)) {
@@ -19,17 +19,18 @@ if (!is_array($input)) {
 $username = $input['username'] ?? null;
 $password = $input['password'] ?? null;
 
+// Kötelező mezők ellenőrzése
 if (!$username || !$password) {
     http_response_code(422);
     errorResponse("Hiányzik a felhasználónév vagy jelszó.");
 }
 
 try {
-    
+    // Felhasználó lekérése
     $stmt = $pdo->prepare("
-        SELECT id, username, password_hash, role, is_active 
-        FROM users 
-        WHERE username = :username 
+        SELECT id, username, password_hash, role, is_active
+        FROM users
+        WHERE username = :username
         LIMIT 1
     ");
     $stmt->execute(['username' => $username]);
@@ -40,22 +41,25 @@ try {
         errorResponse("Nincs ilyen felhasználó.");
     }
 
+    // Admin jogosultság ellenőrzése
     if ($user['role'] !== 'admin') {
         http_response_code(403);
         errorResponse("Nincs admin jogosultság.");
     }
 
+    // Aktív státusz ellenőrzése
     if ((int)$user['is_active'] === 0) {
         http_response_code(403);
         errorResponse("A felhasználó inaktív.");
     }
 
+    // Jelszó ellenőrzése
     if (!password_verify($password, $user['password_hash'])) {
         http_response_code(401);
         errorResponse("Hibás jelszó.");
     }
 
-    
+    // Admin session beállítása
     $_SESSION['admin_id'] = $user['id'];
     $_SESSION['admin_username'] = $user['username'];
 
