@@ -1,24 +1,14 @@
 <?php
-// Központi inicializáló fájl betöltése (DB, session, security, response, helpers)
+
 require_once __DIR__ . '/../shared/init.php';
 
-/**
- * get_all_stats.php (admin modul)
- * -------------------------
- * Admin funkció: komplex statisztikák lekérése.
- * - Csak GET metódus engedélyezett.
- * - Ellenőrzi, hogy van-e aktív admin session.
- * - Visszaadja a globális, felhasználói és hirdetés statisztikákat.
- * - JSON választ ad vissza: success vagy error.
- */
-
-// Csak GET kérést engedünk
+// Csak GET metódus engedélyezett
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
     errorResponse("Csak GET metódus engedélyezett.");
 }
 
-// Ellenőrizzük, hogy van-e aktív admin session
+// Admin session ellenőrzése
 if (!isset($_SESSION['admin_id'])) {
     http_response_code(401);
     errorResponse("Nincs aktív admin session.");
@@ -45,7 +35,7 @@ try {
     ");
     $userStats = $stmtUserStats->fetchAll(PDO::FETCH_ASSOC);
 
-    // Hirdetésenkénti összesítés (ár statisztika)
+    // Hirdetés ár statisztika
     $stmtListingStats = $pdo->query("
         SELECT 
             COUNT(*) AS total_listings,
@@ -71,45 +61,3 @@ try {
     http_response_code(500);
     errorResponse("Adatbázis hiba: " . $e->getMessage());
 }
-
-
-/* 
-### Cél  
-A `get_all_stats.php` az **admin modul** része, amely komplex statisztikákat ad vissza a rendszer állapotáról.  
-- Csak **GET metódus** engedélyezett.  
-- Admin session szükséges.  
-- Visszaadja:  
-  - Globális számok (aktív/törölt hirdetések, aktív/inaktív/összes user).  
-  - Felhasználónkénti bontás: hány hirdetésük van, abból mennyi aktív/törölt.  
-  - Hirdetésenkénti összesítés: átlagár, minimum, maximum.  
-- JSON formátumban adja vissza az adatokat.  
-
-
-###  Összegzés
-- **Mi változott?**
-  - Javítva a hibás változónév (`$SERVER['REQUESTMETHOD']` → `$_SERVER['REQUEST_METHOD']`).  
-  - Beépítve az admin session ellenőrzés (`$_SESSION['admin_id']`).  
-  - Egységes hibakezelés (`errorResponse()`, `successResponse()`).  
-  - HTTP státuszkódok pontosabb használata (`401`, `405`, `500`).  
-  - Javítva a mezőnevek (`deletedat` → `deleted_at`).  
-  - Típusos konverzió: minden számláló integerként kerül visszaadásra.  
-
-- **Miért jobb így?**
-  - Biztonságos → csak admin férhet hozzá.  
-  - Egységes JSON válasz → frontend mindig kiszámítható választ kap.  
-  - REST alapelveknek megfelelő → metódus, státuszkódok, hibakezelés.  
-  - Vizsgán jól bemutatható → komplex statisztikai összesítés (globális + user + listing).  
-
----
-
-
-
-Régi:
-Összefoglalás
-Ez a get_all_stats.php script az admin modulban komplex statisztikákat ad vissza:  
-- Globális számok (aktív/törölt hirdetések, aktív/inaktív/összes user).  
-- Felhasználónkénti bontás: hány hirdetésük van, abból mennyi aktív/törölt.  
-- Hirdetésenkénti összesítés: átlagár, minimum, maximum.  
-
-Ez mutatja, hogy az admin modul nemcsak kezel, hanem elemez is.
-*/
