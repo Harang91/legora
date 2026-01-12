@@ -51,7 +51,7 @@ function adatokValtoztatasa($muvelet)
 {
     $pdo = getPDO();
     if (!($pdo instanceof PDO)) {
-        return $pdo; // hibaüzenet stringként
+        return $pdo; // hibaüzenet stringként 
     }
 
     try {
