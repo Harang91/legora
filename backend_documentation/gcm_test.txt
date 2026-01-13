@@ -1,2 +1,0 @@
-ezt törölhetitek, csak hitelesíteni kellett a GCM-t, mert tokent akart egyfolytában és kellett egy push a folyamathoz.
-Törölhető!
