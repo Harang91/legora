@@ -1,33 +1,65 @@
 <?php
 
-// Adatok lekérése az adatbázisból (SELECT műveletek)
-function adatokLekerese($muvelet)
+// Globális PDO kapcsolat (egyszer jön létre, újrahasznosítható)
+function getPDO()
 {
-    $db = new mysqli("localhost", "root", "", "legora");
-    if ($db->connect_errno != 0) {
-        return $db->connect_error;
+    static $pdo = null;
+
+    if ($pdo === null) {
+        try {
+            $pdo = new PDO(
+                "mysql:host=localhost;dbname=legora;charset=utf8",
+                "root",
+                "",
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false
+                ]
+            );
+        } catch (PDOException $e) {
+            return $e->getMessage(); // kompatibilis a régi hibakezeléssel
+        }
     }
 
-    $eredmeny = $db->query($muvelet);
-    if ($db->errno != 0) {
-        return $db->error;
-    }
-
-    return ($eredmeny->num_rows > 0) ? $eredmeny->fetch_all(MYSQLI_ASSOC) : [];
+    return $pdo;
 }
 
-// INSERT, UPDATE, DELETE típusú SQL műveletek
+
+// SELECT műveletek (adatok lekérése)
+function adatokLekerese($muvelet)
+{
+    $pdo = getPDO();
+    if (!($pdo instanceof PDO)) {
+        return $pdo; // hibaüzenet stringként
+    }
+
+    try {
+        $stmt = $pdo->query($muvelet);
+        $eredmeny = $stmt->fetchAll();
+
+        return $eredmeny ?: []; // ha nincs találat → üres tömb
+
+    } catch (PDOException $e) {
+        return $e->getMessage(); // kompatibilis a régi mysqli hibával
+    }
+}
+
+
+// INSERT / UPDATE / DELETE műveletek
 function adatokValtoztatasa($muvelet)
 {
-    $db = new mysqli("localhost", "root", "", "legora");
-    if ($db->connect_errno != 0) {
-        return $db->connect_error;
+    $pdo = getPDO();
+    if (!($pdo instanceof PDO)) {
+        return $pdo; // hibaüzenet stringként 
     }
 
-    $db->query($muvelet);
-    if ($db->errno != 0) {
-        return $db->error;
-    }
+    try {
+        $stmt = $pdo->prepare($muvelet);
+        $stmt->execute();
 
-    return $db->affected_rows > 0 ? true : false;
+        return $stmt->rowCount() > 0 ? true : false;
+    } catch (PDOException $e) {
+        return $e->getMessage(); // kompatibilis a régi hibakezeléssel
+    }
 }
