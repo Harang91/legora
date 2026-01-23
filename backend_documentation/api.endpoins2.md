@@ -249,9 +249,6 @@ POST /auth/register.php
 
 ----------------------------------------------- auth/verify.php ---------------------------------------------------
 
-Rendben, András 🙂  
-Akkor elkészítjük az **api_endpoints.md dokumentációt** az `auth/verify.php` végponthoz, a rögzített sablon szerint.
-
 ---
 
 ```markdown
@@ -495,8 +492,6 @@ vagy
 - Tartalmazza az **URL‑t, metódust, request body példákat, response példákat és megjegyzéseket**.  
 - A frontend fejlesztők így pontosan tudják, hogyan kell frissíteni a felhasználói adatokat.  
 - Jól bemutatható: login után → update_user → get_user → ellenőrzés.
-
-
 
 
 
@@ -1457,7 +1452,7 @@ A `get_orders.php` endpoint feladata, hogy a **bejelentkezett felhasználó rend
 
 ---
 
-## 📝 Összegzés  
+## Összegzés  
 - Az `get_orders.php` dokumentációja most **egységes sablonban** van leírva.  
 - Tartalmazza az **URL‑t, metódust, response példákat és megjegyzéseket**.  
 - A frontend fejlesztők így pontosan tudják, hogyan kell rendeléseket lekérni, és mit várhatnak vissza.  
@@ -1736,8 +1731,6 @@ Az `update_status.php` endpoint feladata, hogy a **bejelentkezett felhasználó 
 
 
 
-
-
 ##################################################################################################################
 ################################################ CART MODUL ######################################################
 ##################################################################################################################
@@ -2009,7 +2002,6 @@ A `get_cart.php` endpoint feladata, hogy a **bejelentkezett felhasználó kosar�
 
 
 
-
 ----------------------------------------------- cart/remove_from_cart.php --------------------------------------------
 
 ### api_endpoints.md – Cart modul / `remove_from_cart.php`
@@ -2141,7 +2133,6 @@ A `remove_from_cart.php` endpoint feladata, hogy a **felhasználó kosarából c
 - Vizsgán jól bemutatható: Listings → Cart (add_to_cart, get_cart, remove_from_cart) → Orders.  
 
 ---
-
 
 
 
